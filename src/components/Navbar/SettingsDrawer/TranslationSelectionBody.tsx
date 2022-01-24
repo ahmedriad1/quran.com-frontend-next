@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import Fuse from 'fuse.js';
 import groupBy from 'lodash/groupBy';
+import omit from 'lodash/omit';
 import useTranslation from 'next-translate/useTranslation';
+import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 
 import IconSearch from '../../../../public/icons/search.svg';
@@ -22,12 +24,17 @@ import {
   logValueChange,
   logItemSelectionChange,
 } from 'src/utils/eventLogger';
+import { getLocaleName } from 'src/utils/locale';
 import { TranslationsResponse } from 'types/ApiResponses';
 import AvailableTranslation from 'types/AvailableTranslation';
+import QueryParam from 'types/QueryParam';
 
-const filterTranslations = (translations, searchQuery: string): AvailableTranslation[] => {
+const filterTranslations = (
+  translations: AvailableTranslation[],
+  searchQuery: string,
+): AvailableTranslation[] => {
   const fuse = new Fuse(translations, {
-    keys: ['name', 'languageName', 'authorName'],
+    keys: ['name', 'languageName', 'authorName', 'translatedName.name'],
     threshold: 0.3,
   });
 
@@ -39,27 +46,68 @@ const filterTranslations = (translations, searchQuery: string): AvailableTransla
 };
 
 const TranslationSelectionBody = () => {
-  const { t } = useTranslation('common');
+  const { t, lang } = useTranslation('common');
+  const router = useRouter();
   const dispatch = useDispatch();
   const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual);
-  const { lang } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const onTranslationsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedTranslationId = e.target.value;
-    const isChecked = e.target.checked;
+  const onTranslationsChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedTranslationId = e.target.value;
+      const isChecked = e.target.checked;
+      // when the checkbox is checked
+      // add the selectedTranslationId to redux
+      // if unchecked, remove it from redux
+      const nextTranslations = isChecked
+        ? [...selectedTranslations, Number(selectedTranslationId)]
+        : selectedTranslations.filter((id) => id !== Number(selectedTranslationId)); // remove the id
 
-    // when the checkbox is checked
-    // add the selectedTranslationId to redux
-    // if unchecked, remove it from redux
-    const nextTranslations = isChecked
-      ? [...selectedTranslations, Number(selectedTranslationId)]
-      : selectedTranslations.filter((id) => id !== Number(selectedTranslationId)); // remove the id
+      logItemSelectionChange('translation', selectedTranslationId, isChecked);
+      logValueChange('selected_translations', selectedTranslations, nextTranslations);
+      dispatch(setSelectedTranslations({ translations: nextTranslations, locale: lang }));
+      if (nextTranslations.length) {
+        router.query[QueryParam.Translations] = nextTranslations.join(',');
+        router.push(router, undefined, { shallow: true });
+      }
+    },
+    [dispatch, lang, router, selectedTranslations],
+  );
 
-    logItemSelectionChange('translation', selectedTranslationId, isChecked);
-    logValueChange('selected_translations', selectedTranslations, nextTranslations);
-    dispatch(setSelectedTranslations({ translations: nextTranslations, locale: lang }));
-  };
+  const renderTranslationGroup = useCallback(
+    (language, translations) => {
+      if (!translations) {
+        return <></>;
+      }
+      return (
+        <div className={styles.group} key={language}>
+          <div className={styles.language}>{language}</div>
+          {translations
+            .sort((a: AvailableTranslation, b: AvailableTranslation) =>
+              a.authorName.localeCompare(b.authorName),
+            )
+            .map((translation: AvailableTranslation) => (
+              <div key={translation.id} className={styles.item}>
+                <input
+                  id={translation.id.toString()}
+                  type="checkbox"
+                  value={translation.id}
+                  checked={selectedTranslations.includes(translation.id)}
+                  onChange={onTranslationsChange}
+                />
+                <label
+                  htmlFor={translation.id.toString()}
+                  lang={translation.translatedName.languageName}
+                >
+                  {translation.translatedName.name}
+                </label>
+              </div>
+            ))}
+        </div>
+      );
+    },
+    [onTranslationsChange, selectedTranslations],
+  );
 
   return (
     <div>
@@ -80,27 +128,22 @@ const TranslationSelectionBody = () => {
             ? filterTranslations(data.translations, searchQuery)
             : data.translations;
           const translationByLanguages = groupBy(filteredTranslations, 'languageName');
+          const selectedTranslationLanguage = getLocaleName(lang).toLowerCase();
+          const selectedTranslationGroup = translationByLanguages[selectedTranslationLanguage];
+          const translationByLanguagesWithoutSelectedLanguage = omit(translationByLanguages, [
+            selectedTranslationLanguage,
+          ]);
+
           return (
             <div>
-              {Object.entries(translationByLanguages).map(([language, translations]) => {
-                return (
-                  <div className={styles.group} key={language}>
-                    <div className={styles.language}>{language}</div>
-                    {translations.map((translation) => (
-                      <div key={translation.id} className={styles.item}>
-                        <input
-                          id={translation.id.toString()}
-                          type="checkbox"
-                          value={translation.id}
-                          checked={selectedTranslations.includes(translation.id)}
-                          onChange={onTranslationsChange}
-                        />
-                        <label htmlFor={translation.id.toString()}>{translation.authorName}</label>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
+              {renderTranslationGroup(selectedTranslationLanguage, selectedTranslationGroup)}
+              {Object.entries(translationByLanguagesWithoutSelectedLanguage)
+                .sort((a, b) => {
+                  return a[0].localeCompare(b[0]);
+                })
+                .map(([language, translations]) => {
+                  return renderTranslationGroup(language, translations);
+                })}
             </div>
           );
         }}

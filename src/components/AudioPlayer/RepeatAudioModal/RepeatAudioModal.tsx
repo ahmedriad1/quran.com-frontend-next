@@ -2,7 +2,7 @@
 import { useMemo, useState, useEffect } from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { triggerPauseAudio } from '../EventTriggers';
 
@@ -13,17 +13,18 @@ import SelectRepetitionMode, { RepetitionMode } from './SelectRepetitionMode';
 import Modal from 'src/components/dls/Modal/Modal';
 import Separator from 'src/components/dls/Separator/Separator';
 import { RangeVerseItem } from 'src/components/Verse/AdvancedCopy/SelectorContainer';
+import useGetQueryParamOrReduxValue from 'src/hooks/useGetQueryParamOrReduxValue';
 import {
   exitRepeatMode,
   playFrom,
   selectIsInRepeatMode,
-  selectReciter,
   selectRepeatSettings,
   setRepeatSettings,
 } from 'src/redux/slices/AudioPlayer/state';
 import { getChapterData } from 'src/utils/chapter';
 import { logButtonClick, logValueChange } from 'src/utils/eventLogger';
 import { generateChapterVersesKeys, getChapterFirstAndLastVerseKey } from 'src/utils/verse';
+import QueryParam from 'types/QueryParam';
 
 type RepeatAudioModalProps = {
   chapterId: string;
@@ -42,7 +43,8 @@ const RepeatAudioModal = ({
 }: RepeatAudioModalProps) => {
   const { t, lang } = useTranslation('common');
   const dispatch = useDispatch();
-  const reciter = useSelector(selectReciter, shallowEqual);
+  const { value: reciterId }: { value: number } = useGetQueryParamOrReduxValue(QueryParam.Reciter);
+
   const repeatSettings = useSelector(selectRepeatSettings);
   const [repetitionMode, setRepetitionMode] = useState(defaultRepetitionMode);
   const isInRepeatMode = useSelector(selectIsInRepeatMode);
@@ -91,7 +93,7 @@ const RepeatAudioModal = ({
     dispatch(
       playFrom({
         chapterId: Number(chapterId),
-        reciterId: reciter.id,
+        reciterId,
         verseKey: verseRepetition.from,
       }),
     );
@@ -132,10 +134,14 @@ const RepeatAudioModal = ({
             rangeStartVerse={verseRepetition.from}
             comboboxVerseItems={comboboxVerseItems}
             onRepetitionModeChange={onRepetitionModeChange}
-            onSingleVerseChange={(verseKey) =>
-              setVerseRepetition({ ...verseRepetition, from: verseKey, to: verseKey })
-            }
-            onRangeChange={(range) => setVerseRepetition({ ...verseRepetition, ...range })}
+            onSingleVerseChange={(verseKey) => {
+              logValueChange('repeat_single_verse', verseRepetition.repeatRange, verseKey);
+              setVerseRepetition({ ...verseRepetition, from: verseKey, to: verseKey });
+            }}
+            onRangeChange={(range) => {
+              logValueChange('repeat_verse_range', verseRepetition.repeatRange, range);
+              setVerseRepetition({ ...verseRepetition, ...range });
+            }}
             verseKey={verseRepetition.from}
           />
           <div className={styles.separator}>
@@ -145,6 +151,7 @@ const RepeatAudioModal = ({
             label={t('audio.player.play-range')}
             value={verseRepetition.repeatRange}
             minValue={1}
+            infinityThreshold={3}
             onChange={(val) => {
               logValueChange('repeat_play_range', verseRepetition.repeatRange, val);
               setVerseRepetition({ ...verseRepetition, repeatRange: val });
@@ -155,6 +162,7 @@ const RepeatAudioModal = ({
             label={t('audio.player.repeat-verse')}
             value={verseRepetition.repeatEachVerse}
             minValue={1}
+            infinityThreshold={3}
             onChange={(val) => {
               logValueChange('repeat_verse', verseRepetition.repeatEachVerse, val);
               setVerseRepetition({ ...verseRepetition, repeatEachVerse: val });

@@ -1,5 +1,6 @@
 {
     "about": "About Us",
+    "and": "and",
     "audio": {
         "auto-scroll": {
             "off": "Off",
@@ -15,6 +16,7 @@
             "currently-playing": "You are currently playing",
             "delay-verse": "Delay between verse",
             "download": "Download",
+            "full-surah": "Full Surah",
             "mismatch": "Click on \"Start Over\" if you would like to play {{currentReadingChapter}} instead",
             "next-ayah": "Next Ayah",
             "pause": "Pause",
@@ -101,6 +103,7 @@
         "clear": "Clear"
     },
     "juz": "Juz",
+    "language": "Language",
     "languages": "Languages",
     "loading": "Loading",
     "menu": "Menu",
@@ -151,6 +154,7 @@
     "product-updates": "Product Updates",
     "q-reflect": "QuranReflect",
     "quran-com": "Quran.com",
+    "quran-radio": "Quran Radio",
     "reading-preference": {
         "reading": "Reading",
         "translation": "Translation"
@@ -184,7 +188,9 @@
         "selected-reciter": "Selected Reciter",
         "selected-tafsirs": "Selected Tafsirs",
         "selected-translations": "Selected Translations",
+        "show-tooltip-when-playing-audio": "Show tooltip when playing audio",
         "title": "Settings",
+        "tooltip-playing-audio-helper": "Show word translation in tooltip while playing ayah",
         "value-and-others": "{{value}}, and {{othersCount}} others",
         "wbw-helper": "Display the translation or transliteration directly under the word",
         "word-tooltip-helper": "Display the translation or transliteration when hovering or clicking the word"

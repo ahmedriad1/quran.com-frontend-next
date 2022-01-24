@@ -102,6 +102,7 @@ const AudioRepeatManager = ({
   useEffect(() => {
     if (!lastActiveVerseTiming.current) return null;
     if (!audioData || isValidating) return null;
+
     if (!isInRepeatMode) return null;
 
     const isVerseEnded = currentTimeInMs >= lastActiveVerseTiming.current.timestampTo;
@@ -118,6 +119,7 @@ const AudioRepeatManager = ({
     }
 
     const isRangeEnded = currentTimeInMs >= verseRangeTo.timestampTo;
+    const isAudioEnded = audioPlayerElRef.current.ended;
 
     // When we're done repeating this verse. Reset the progress state so it can be used for the next verse repetition
     // also delay the audio when the verse changed to the next verse
@@ -130,10 +132,11 @@ const AudioRepeatManager = ({
     // 1) set the current time to the beginning of the range
     // 2) pause the audio when the delayMultiplier is set
     // 3) increment repeatRange progress by 1
-    if (isRangeEnded && repeatProgress.repeatRange < repeatSettings.repeatRange) {
+    if ((isRangeEnded || isAudioEnded) && repeatProgress.repeatRange < repeatSettings.repeatRange) {
       triggerSetCurrentTime(verseRangeFrom.timestampFrom / 1000);
       delayAudioWhenNeeded();
       dispatch(setRepeatProgress({ repeatRange: repeatProgress.repeatRange + 1 }));
+      triggerPlayAudio();
       return null;
     }
 
@@ -141,6 +144,7 @@ const AudioRepeatManager = ({
       triggerPauseAudio();
       dispatch(setRepeatProgress({ repeatRange: 1 }));
       dispatch(exitRepeatMode());
+      return null;
     }
 
     return null;

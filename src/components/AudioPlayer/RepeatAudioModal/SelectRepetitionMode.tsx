@@ -2,14 +2,17 @@ import { useMemo } from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
+import styles from './RepeatSetting.module.scss';
+
 import Combobox from 'src/components/dls/Forms/Combobox';
-import RadioGroup, { RadioGroupOrientation } from 'src/components/dls/Forms/RadioGroup/RadioGroup';
+import Switch from 'src/components/dls/Switch/Switch';
 import { RangeSelectorType } from 'src/components/Verse/AdvancedCopy/SelectorContainer';
 import VerseRangeSelector from 'src/components/Verse/AdvancedCopy/VersesRangeSelector';
 
 export enum RepetitionMode {
   Single = 'single',
   Range = 'range',
+  Chapter = 'chapter',
 }
 
 const SelectRepetitionMode = ({
@@ -23,30 +26,34 @@ const SelectRepetitionMode = ({
   verseKey,
 }) => {
   const { t } = useTranslation('common');
-  const repetitionModeRadioGroupItems = useMemo(
+  const repetitionModeItems = useMemo(
     () => [
       {
         value: RepetitionMode.Single,
-        id: RepetitionMode.Single,
-        label: t('audio.player.single-verse'),
+        name: t('audio.player.single-verse'),
       },
+
       {
         value: RepetitionMode.Range,
-        id: RepetitionMode.Range,
-        label: t('audio.player.verses-range'),
+        name: t('audio.player.verses-range'),
+      },
+      {
+        value: RepetitionMode.Chapter,
+        name: t('audio.player.full-surah'),
       },
     ],
     [t],
   );
+
   return (
     <>
-      <RadioGroup
-        label="range"
-        orientation={RadioGroupOrientation.Horizontal}
-        onChange={onRepetitionModeChange}
-        value={repetitionMode}
-        items={repetitionModeRadioGroupItems}
-      />
+      <div className={styles.switchContainer}>
+        <Switch
+          items={repetitionModeItems}
+          selected={repetitionMode}
+          onSelect={onRepetitionModeChange}
+        />
+      </div>
       {repetitionMode === RepetitionMode.Single && (
         <Combobox
           clearable={false}

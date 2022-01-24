@@ -1,9 +1,10 @@
-import React, { ReactNode, useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 import classNames from 'classnames';
 import { shallowEqual, useSelector } from 'react-redux';
 import useSWRImmutable from 'swr/immutable';
 
+import getTooltipText from './getToolTipText';
 import GlyphWord from './GlyphWord';
 import onQuranWordClick from './onQuranWordClick';
 import styles from './QuranWord.module.scss';
@@ -13,7 +14,8 @@ import TextWord from './TextWord';
 import { getChapterAudioData } from 'src/api';
 import MobilePopover from 'src/components/dls/Popover/HoverablePopover';
 import Wrapper from 'src/components/Wrapper/Wrapper';
-import { selectReciter } from 'src/redux/slices/AudioPlayer/state';
+import useGetQueryParamOrReduxValue from 'src/hooks/useGetQueryParamOrReduxValue';
+import { selectShowTooltipWhenPlayingAudio } from 'src/redux/slices/AudioPlayer/state';
 import { selectIsWordHighlighted } from 'src/redux/slices/QuranReader/highlightedLocation';
 import {
   selectWordClickFunctionality,
@@ -26,12 +28,8 @@ import { areArraysEqual } from 'src/utils/array';
 import { logButtonClick } from 'src/utils/eventLogger';
 import { isQCFFont } from 'src/utils/fontFaceHelper';
 import { getChapterNumberFromKey, makeWordLocation } from 'src/utils/verse';
-import {
-  ReadingPreference,
-  QuranFont,
-  WordByWordType,
-  WordClickFunctionality,
-} from 'types/QuranReader';
+import QueryParam from 'types/QueryParam';
+import { ReadingPreference, QuranFont, WordClickFunctionality } from 'types/QuranReader';
 import Word, { CharType } from 'types/Word';
 
 export const DATA_ATTRIBUTE_WORD_LOCATION = 'data-word-location';
@@ -54,12 +52,15 @@ const QuranWord = ({
   isFontLoaded = true,
 }: QuranWordProps) => {
   const wordClickFunctionality = useSelector(selectWordClickFunctionality);
-  const reciter = useSelector(selectReciter, shallowEqual);
+  const { value: reciterId }: { value: number } = useGetQueryParamOrReduxValue(QueryParam.Reciter);
+
   const chapterId = word.verseKey ? getChapterNumberFromKey(word.verseKey) : null;
   const { data: audioData } = useSWRImmutable(
-    chapterId ? makeChapterAudioDataUrl(reciter.id, chapterId, true) : null,
-    () => getChapterAudioData(reciter.id, chapterId, true),
+    chapterId ? makeChapterAudioDataUrl(reciterId, chapterId, true) : null,
+    () => getChapterAudioData(reciterId, chapterId, true),
   );
+
+  const showTooltipWhenPlayingAudio = useSelector(selectShowTooltipWhenPlayingAudio);
 
   const [isTooltipOpened, setIsTooltipOpened] = useState(false);
   const { showWordByWordTranslation, showWordByWordTransliteration } = useSelector(
@@ -142,6 +143,7 @@ const QuranWord = ({
         shouldWrap={showTooltip}
         wrapper={(children) => (
           <MobilePopover
+            isOpen={isAudioPlayingWord && showTooltipWhenPlayingAudio ? true : undefined}
             defaultStyling={false}
             content={tooltipContent}
             onOpenChange={setIsTooltipOpened}
@@ -163,22 +165,5 @@ const QuranWord = ({
     </div>
   );
 };
-
-/**
- * Generate the Tooltip content based on the settings.
- *
- * @param {WordByWordType[]} showTooltipFor
- * @param {Word} word
- * @returns {ReactNode}
- */
-const getTooltipText = (showTooltipFor: WordByWordType[], word: Word): ReactNode => (
-  <>
-    {showTooltipFor.map((tooltipTextType) => (
-      <p key={tooltipTextType} className={styles.tooltipText}>
-        {word[tooltipTextType].text}
-      </p>
-    ))}
-  </>
-);
 
 export default QuranWord;

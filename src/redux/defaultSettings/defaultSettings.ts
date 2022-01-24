@@ -106,6 +106,8 @@ const AUDIO_INITIAL_STATE: AudioState = {
   isDownloadingAudio: false,
   playbackRate: DEFAULT_PLAYBACK_RATE,
   isUsingDefaultReciter: true,
+  showTooltipWhenPlayingAudio: false,
+  isRadioMode: false,
 };
 
 export default {

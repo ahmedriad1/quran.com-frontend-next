@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
+import classNames from 'classnames';
 import useTranslation from 'next-translate/useTranslation';
-import { useDispatch, shallowEqual, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import PauseIcon from '../../../public/icons/pause.svg';
-import PlayIcon from '../../../public/icons/play-arrow.svg';
+import PauseIcon from '../../../public/icons/pause-outline.svg';
+import PlayIcon from '../../../public/icons/play-outline.svg';
 import Spinner from '../dls/Spinner/Spinner';
+import styles from '../QuranReader/TranslationView/TranslationViewCell.module.scss';
 
 import { triggerPauseAudio } from 'src/components/AudioPlayer/EventTriggers';
-import Button, { ButtonSize, ButtonType } from 'src/components/dls/Button/Button';
+import Button, {
+  ButtonShape,
+  ButtonSize,
+  ButtonType,
+  ButtonVariant,
+} from 'src/components/dls/Button/Button';
+import useGetQueryParamOrReduxValue from 'src/hooks/useGetQueryParamOrReduxValue';
 import {
-  selectReciter,
   playFrom,
   selectAudioDataStatus,
   exitRepeatMode,
@@ -19,6 +26,7 @@ import { selectIsVerseBeingPlayed } from 'src/redux/slices/QuranReader/highlight
 import AudioDataStatus from 'src/redux/types/AudioDataStatus';
 import { logButtonClick } from 'src/utils/eventLogger';
 import { getChapterNumberFromKey } from 'src/utils/verse';
+import QueryParam from 'types/QueryParam';
 
 interface PlayVerseAudioProps {
   verseKey: string;
@@ -29,7 +37,7 @@ const PlayVerseAudioButton = ({ verseKey, timestamp }: PlayVerseAudioProps) => {
 
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
-  const { id: reciterId } = useSelector(selectReciter, shallowEqual);
+  const { value: reciterId }: { value: number } = useGetQueryParamOrReduxValue(QueryParam.Reciter);
   const isVerseBeingPlayed = useSelector(selectIsVerseBeingPlayed(verseKey));
   const chapterId = getChapterNumberFromKey(verseKey);
   const audioDataStatus = useSelector(selectAudioDataStatus);
@@ -63,7 +71,13 @@ const PlayVerseAudioButton = ({ verseKey, timestamp }: PlayVerseAudioProps) => {
 
   if (isLoading)
     return (
-      <Button size={ButtonSize.Small} tooltip={t('loading')} type={ButtonType.Secondary}>
+      <Button
+        size={ButtonSize.Small}
+        tooltip={t('loading')}
+        type={ButtonType.Success}
+        shape={ButtonShape.Circle}
+        variant={ButtonVariant.Ghost}
+      >
         <Spinner />
       </Button>
     );
@@ -71,12 +85,16 @@ const PlayVerseAudioButton = ({ verseKey, timestamp }: PlayVerseAudioProps) => {
   if (isVerseBeingPlayed)
     return (
       <Button
+        variant={ButtonVariant.Ghost}
         size={ButtonSize.Small}
         tooltip={t('audio.player.pause')}
-        type={ButtonType.Secondary}
         onClick={onPauseClicked}
+        className={classNames(styles.iconContainer, styles.verseAction)}
+        shape={ButtonShape.Circle}
       >
-        <PauseIcon />
+        <span className={styles.icon}>
+          <PauseIcon />
+        </span>
       </Button>
     );
 
@@ -84,11 +102,15 @@ const PlayVerseAudioButton = ({ verseKey, timestamp }: PlayVerseAudioProps) => {
     <Button
       size={ButtonSize.Small}
       tooltip={t('audio.player.play')}
-      type={ButtonType.Secondary}
+      variant={ButtonVariant.Ghost}
       onClick={onPlayClicked}
       shouldFlipOnRTL={false}
+      shape={ButtonShape.Circle}
+      className={classNames(styles.iconContainer, styles.verseAction)}
     >
-      <PlayIcon />
+      <span className={classNames(styles.icon, styles.playIcon)}>
+        <PlayIcon />
+      </span>
     </Button>
   );
 };

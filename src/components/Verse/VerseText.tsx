@@ -6,10 +6,10 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { QURAN_READER_OBSERVER_ID } from '../QuranReader/observer';
 
 import isCenterAlignedPage from './pageUtils';
+import VerseHighlighter from './VerseHighlighter';
 import styles from './VerseText.module.scss';
 
 import ChapterHeader from 'src/components/chapters/ChapterHeader';
-import QuranWord from 'src/components/dls/QuranWord/QuranWord';
 import useIntersectionObserver from 'src/hooks/useObserveElement';
 import { selectLoadedFontFaces } from 'src/redux/slices/QuranReader/font-faces';
 import { selectWordByWordByWordPreferences } from 'src/redux/slices/QuranReader/readingPreferences';
@@ -94,14 +94,12 @@ const VerseText = ({
             [styles.verseTextSpaceBetween]: isReadingMode && !centerAlignPage,
           })}
         >
-          {words?.map((word) => (
-            <QuranWord
-              key={word.location}
-              word={word}
-              font={quranFont}
-              isFontLoaded={isFontLoaded}
-            />
-          ))}
+          <VerseHighlighter
+            words={words}
+            font={quranFont}
+            isFontLoaded={isFontLoaded}
+            textRef={textRef}
+          />
         </div>
       </VerseTextContainer>
     </>

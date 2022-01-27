@@ -1,0 +1,54 @@
+.container {
+  position: relative;
+}
+
+// .container ::selection {
+//   background: none;
+// }
+
+.highlighted {
+  background: var(--color-highlight);
+}
+
+.cursor {
+  position: absolute;
+  background: var(--color-success-medium);
+  width: 5px;
+  height: 100%;
+  top: 0;
+  z-index: 1;
+}
+
+.start {
+  @extend .cursor;
+  right: 0;
+}
+
+.start::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--color-success-medium);
+}
+
+.end {
+  @extend .cursor;
+  left: 0;
+}
+
+.end::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--color-success-medium);
+}

@@ -1,29 +1,40 @@
+import { ButtonHTMLAttributes } from 'react';
+
 import useTranslation from 'next-translate/useTranslation';
 
 import PlayIcon from '../../../../public/icons/play-arrow.svg';
 
-import styles from './VerseHighlighterAction.module.scss';
-
 import Button, { ButtonSize, ButtonType, ButtonVariant } from 'src/components/dls/Button/Button';
+import Popover, { ContentAlign, ContentSide } from 'src/components/dls/Popover';
 
-const VerseHighlighterAction = () => {
+const VerseHighlighterAction = ({ children }) => {
   const { t } = useTranslation('common');
 
   return (
-    <div className={styles.dialog}>
-      <Button
-        variant={ButtonVariant.Ghost}
-        type={ButtonType.Success}
-        size={ButtonSize.Small}
-        prefix={<PlayIcon />}
-        // onClick={() => {
-        //   void
-        // }}
-        shouldFlipOnRTL={false}
-      >
-        {t('audio.play-segment')}
-      </Button>
-    </div>
+    <Popover
+      trigger={children}
+      contentSide={ContentSide.BOTTOM}
+      contentAlign={ContentAlign.CENTER}
+      open
+      defaultStyling={false}
+      tip
+    >
+      <button onMouseUp={(e) => e.stopPropagation()}>{t('audio.play-segment')}</button>
+      {/* <Button
+          variant={ButtonVariant.Ghost}
+          type={ButtonType.Success}
+          size={ButtonSize.Small}
+          prefix={<PlayIcon />}
+          
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          shouldFlipOnRTL={false}
+        >
+          
+        </Button> */}
+    </Popover>
   );
 };
 

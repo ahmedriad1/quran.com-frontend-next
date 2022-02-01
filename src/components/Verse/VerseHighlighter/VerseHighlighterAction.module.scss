@@ -1,7 +1,22 @@
-.dialog {
-  background: white;
-  position: absolute;
-  width: 200px;
-  bottom: -40px;
-  right: 0;
+.title {
+  font-weight: var(--font-weight-bold); 
+  color: var(--color-text-faded);
+  margin-block-end: var(--spacing-large);
+}
+
+.inputGroup {
+ margin-block-start: var(--spacing-medium);
+ margin-block-end: var(--spacing-medium);
+
+ & > label {
+   font-weight: var(--font-weight-bold);
+ }
+
+ & > div {
+  display: flex;
+  align-items: center;
+  & > span {
+    margin-inline-start: var(--spacing-small);
+  }
+ }
 }

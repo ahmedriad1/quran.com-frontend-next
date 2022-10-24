@@ -19,14 +19,20 @@ type RenameCollectionModalProps = {
   isOpen: boolean;
   defaultValue: string;
   onSubmit: (data: any) => void;
+  onClose: () => void;
 };
 
-const RenameCollectionModal = ({ isOpen, onSubmit, defaultValue }: RenameCollectionModalProps) => {
+const RenameCollectionModal = ({
+  isOpen,
+  onSubmit,
+  defaultValue,
+  onClose,
+}: RenameCollectionModalProps) => {
   const { t } = useTranslation('profile');
   return (
-    <Modal isOpen={isOpen}>
+    <Modal isOpen={isOpen} onClickOutside={onClose} isBottomSheetOnMobile={false}>
       <Modal.Body>
-        <div className={styles.header}>Rename Collection</div>
+        <div className={styles.header}>{t('common:rename')}</div>
         <div className={styles.newCollectionFormContainer}>
           <FormBuilder
             formFields={[
@@ -38,7 +44,7 @@ const RenameCollectionModal = ({ isOpen, onSubmit, defaultValue }: RenameCollect
                 type: FormFieldType.Text,
               },
             ]}
-            actionText="Submit"
+            actionText={t('common:submit')}
             onSubmit={onSubmit}
           />
         </div>

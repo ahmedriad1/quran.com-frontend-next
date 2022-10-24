@@ -1,7 +1,3 @@
-import { stringify } from 'querystring';
-
-import { decamelizeKeys } from 'humps';
-
 import { getDefaultWordFields, getMushafId, ITEMS_PER_PAGE, makeUrl } from './api';
 
 import { DEFAULT_RECITER } from '@/redux/defaultSettings/defaultSettings';
@@ -281,17 +277,5 @@ export const makePageVersesUrl = (
  */
 export const makeFootnoteUrl = (footnoteId: string): string => makeUrl(`/foot_notes/${footnoteId}`);
 
-export const makeVerseReflectionsUrl = (chapterId: string, verseNumber: string, lang: string) => {
-  // TODO: revert this back once the API is ready
-  return `https://staging.quran.com/api/qdc/qr/reflections?${stringify(
-    decamelizeKeys({
-      ranges: `${chapterId}:${verseNumber}`,
-      author: true,
-      fields: 'created_at,html_body,comments_count,likes_count',
-      filter: 'latest',
-      verified: true,
-      authorFields: 'avatar_url',
-      lang,
-    }),
-  )}`;
-};
+export const makeDonateUrl = (showDonationPopup = false) =>
+  `https://donate.quran.com${showDonationPopup ? '?showDonationPopup' : ''}`;

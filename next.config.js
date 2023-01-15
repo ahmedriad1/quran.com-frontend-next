@@ -25,21 +25,7 @@ const config = {
     domains: ['cdn.qurancdn.com', 'static.qurancdn.com', 'vercel.com', 'now.sh', 'quran.com'],
   },
   // this is needed to support importing audioWorklet nodes. {@see https://github.com/webpack/webpack/issues/11543#issuecomment-826897590}
-  webpack: (webpackConfig) => {
-    webpackConfig.resolve = {
-      ...webpackConfig.resolve,
-      alias: {
-        ...webpackConfig.resolve.alias,
-        'audio-worklet': path.resolve(__dirname, 'src/audioInput/audio-worklet.ts'),
-      },
-    };
-    webpackConfig.module.parser = {
-      ...webpackConfig.module.parser,
-      javascript: {
-        worker: ['AudioWorklet from audio-worklet'],
-      },
-    };
-
+  webpack: (webpackConfig, ctx) => {
     webpackConfig.module.rules.push({
       test: /\.svg$/i,
       issuer: {
@@ -67,6 +53,23 @@ const config = {
         },
       ],
     });
+
+    if (ctx.nextRuntime === 'edge') return webpackConfig;
+
+    webpackConfig.resolve = {
+      ...webpackConfig.resolve,
+      alias: {
+        ...webpackConfig.resolve.alias,
+        'audio-worklet': path.resolve(__dirname, 'src/audioInput/audio-worklet.ts'),
+      },
+    };
+
+    webpackConfig.module.parser = {
+      ...webpackConfig.module.parser,
+      javascript: {
+        worker: ['AudioWorklet from audio-worklet'],
+      },
+    };
 
     return webpackConfig;
   },

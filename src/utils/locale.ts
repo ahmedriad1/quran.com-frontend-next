@@ -121,7 +121,7 @@ export const Languages = {
   },
   138: {
     // Russian
-    locle: 'ru',
+    locale: 'ru',
   },
   151: {
     // Albanian
